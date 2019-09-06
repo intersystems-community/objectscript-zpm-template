@@ -10,6 +10,12 @@ COPY ./Installer.cls ./
 COPY ./src/cls ./src/cls
 #COPY ./src/dfi ./src/dfi
 
+RUN mkdir -p /tmp/deps \
+
+ && cd /tmp/deps \
+
+ && wget -q https://pm.community.intersystems.com/packages/zpm/latest/installer -O zpm.xml
+
 
 RUN iris start $ISC_PACKAGE_INSTANCENAME quietly EmergencyId=sys,sys && \
     /bin/echo -e "sys\nsys\n" \
@@ -18,6 +24,7 @@ RUN iris start $ISC_PACKAGE_INSTANCENAME quietly EmergencyId=sys,sys && \
             " Do ##class(Security.System).Get(,.p)\n" \
             " Set p(\"AutheEnabled\")=\$zb(p(\"AutheEnabled\"),16,7)\n" \
             " Do ##class(Security.System).Modify(,.p)\n" \
+            " Do \$system.OBJ.Load(\"/tmp/deps/zpm.xml\", \"ck\")" \
             " Do \$system.OBJ.Load(\"/opt/app/Installer.cls\",\"ck\")\n" \
             " Set sc = ##class(App.Installer).setup(, 3)\n" \
             " If 'sc do \$zu(4, \$JOB, 1)\n" \
